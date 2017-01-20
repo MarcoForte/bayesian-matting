@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.ndimage.filters import gaussian_filter
-from sklearn.cluster import KMeans
 import cv2
 
 from orchard_bouman_clust import clustFunc
@@ -121,8 +120,8 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
     foreground = img*np.repeat(fg_mask[:, :, np.newaxis], 3, axis=2)
     background = img*np.repeat(bg_mask[:, :, np.newaxis], 3, axis=2)
 
-    g = matlab_style_gauss2d((N, N), sigma)
-    g = g/np.max(g)
+    gaussian_weights = matlab_style_gauss2d((N, N), sigma)
+    gaussian_weights = gaussian_weights/np.max(gaussian_weights)
 
     alpha[fg_mask] = 1
     F = np.zeros(img.shape)
@@ -153,7 +152,7 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
 
             # Take surrounding foreground pixels
             f_pixels = get_window(foreground, x, y, N)
-            f_weights = (a**2 * g).ravel()
+            f_weights = (a**2 * gaussian_weights).ravel()
 
             f_pixels = np.reshape(f_pixels, (N*N, 3))
             posInds = np.nan_to_num(f_weights) > 0
@@ -162,7 +161,7 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
 
             # Take surrounding foreground pixels
             b_pixels = get_window(background, x, y, N)
-            b_weights = ((1-a)**2 * g).ravel()
+            b_weights = ((1-a)**2 * gaussian_weights).ravel()
 
             b_pixels = np.reshape(b_pixels, (N*N, 3))
             posInds = np.nan_to_num(b_weights) > 0
