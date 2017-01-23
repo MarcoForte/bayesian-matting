@@ -25,13 +25,9 @@ def matlab_style_gauss2d(shape=(3, 3), sigma=0.5):
 def get_window(m, x, y, N):
     h, w, c = m.shape
     halfN = N//2
-    n1 = halfN
-    n2 = N-halfN-1
-    r = np.full([N, N, c], np.nan)
-    xmin = max(0, x-n1)
-    xmax = min(w, x+n2 + 1)
-    ymin = max(0, y-n1)
-    ymax = min(h, y+n2 + 1)
+    r = np.zeros((N, N, c))
+    xmin = max(0, x - halfN); xmax = min(w, x + (halfN+1))
+    ymin = max(0, y - halfN); ymax = min(h, y + (halfN+1))
     pxmin = halfN - (x-xmin); pxmax = halfN + (xmax-x)
     pymin = halfN - (y-ymin); pymax = halfN + (ymax-y)
 
@@ -155,7 +151,7 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
             f_weights = (a**2 * gaussian_weights).ravel()
 
             f_pixels = np.reshape(f_pixels, (N*N, 3))
-            posInds = np.nan_to_num(f_weights) > 0
+            posInds = f_weights > 0
             f_pixels = f_pixels[posInds, :]
             f_weights = f_weights[posInds]
 
@@ -164,7 +160,7 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
             b_weights = ((1-a)**2 * gaussian_weights).ravel()
 
             b_pixels = np.reshape(b_pixels, (N*N, 3))
-            posInds = np.nan_to_num(b_weights) > 0
+            posInds = b_weights > 0
             b_pixels = b_pixels[posInds, :]
             b_weights = b_weights[posInds]
 
@@ -191,10 +187,10 @@ def main():
     img = scipy.misc.imread("gandalf.png")[:, :, :3]
     trimap = scipy.misc.imread("gandalfTrimap.png", flatten='True')
     alpha = bayesian_matte(img, trimap)
-    scipy.misc.imsave('gandalfAlpha.png', alpha)
-    # plt.title("Alpha matte")
-    # plt.imshow(alpha, cmap='gray')
-    # plt.show()
+    #scipy.misc.imsave('gandalfAlpha.png', alpha)
+    plt.title("Alpha matte")
+    plt.imshow(alpha, cmap='gray')
+    plt.show()
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
