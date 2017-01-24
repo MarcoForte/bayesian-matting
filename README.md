@@ -6,6 +6,7 @@ Python implementation of Yung-Yu Chuang, Brian Curless, David H. Salesin, and Ri
 - python 3.5+ (Though it should run on 2.7 with some minor tweaks)
 - scipy
 - numpy
+- numba > 0.30.1 (Not neccesary, but does give a 5x speedup)
 - matplotlib
 - opencv
 
