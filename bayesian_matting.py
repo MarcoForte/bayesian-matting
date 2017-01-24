@@ -23,6 +23,7 @@ def matlab_style_gauss2d(shape=(3, 3), sigma=0.5):
 
 # returns the surrounding N-rectangular neighborhood of matrix m, centered
 # at pixel (x,y), (odd valued N)
+@jit(nopython=True, cache=True)
 def get_window(m, x, y, N):
     h, w, c = m.shape
     halfN = N//2
