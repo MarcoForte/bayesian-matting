@@ -31,7 +31,7 @@ def get_window(m, x, y, N):
     pxmin = halfN - (x-xmin); pxmax = halfN + (xmax-x)
     pymin = halfN - (y-ymin); pymax = halfN + (ymax-y)
 
-    r[pymin:pymax, pxmin:pxmax, :] = m[ymin:ymax, xmin:xmax, :]
+    r[pymin:pymax, pxmin:pxmax] = m[ymin:ymax, xmin:xmax]
     return r
 
 
@@ -60,12 +60,8 @@ def solve(mu_F, Sigma_F, mu_B, Sigma_B, C, sigma_C, alpha_init, maxIter, minLike
     alphaMax = 0
     maxlike = - np.inf
     invsgma2 = 1/sigma_C**2
-    for i in range(mu_F.shape[0]):
-        mu_Fi = mu_F[i, :]
-        invSigma_Fi = np.linalg.inv(Sigma_F[i, :, :])
-        for j in range(mu_B.shape[0]):
-            mubi = mu_B[j, :]
-            invSigma_Bi = np.linalg.inv(Sigma_B[j, :, :])
+    for mu_Fi, invSigma_Fi in zip(mu_F, np.linalg.inv(Sigma_F)):
+        for mu_Bj, invSigma_Bj in zip(mu_B, np.linalg.inv(Sigma_B)):
 
             alpha = alpha_init
             myiter = 1
@@ -74,9 +70,9 @@ def solve(mu_F, Sigma_F, mu_B, Sigma_B, C, sigma_C, alpha_init, maxIter, minLike
                 # solve for F,B
                 A11 = invSigma_Fi + I*alpha**2 * invsgma2
                 A12 = I*alpha*(1-alpha) * invsgma2
-                A22 = invSigma_Bi+I*(1-alpha)**2 * invsgma2
+                A22 = invSigma_Bj+I*(1-alpha)**2 * invsgma2
                 A = np.vstack((np.hstack((A11, A12)), np.hstack((A12, A22))))
-                b = np.array([invSigma_Fi @ mu_Fi + C*(alpha) * invsgma2, invSigma_Bi @ mubi + C*(1-alpha) * invsgma2])
+                b = np.array([invSigma_Fi @ mu_Fi + C*(alpha) * invsgma2, invSigma_Bj @ mu_Bj + C*(1-alpha) * invsgma2])
                 b = b.reshape(6, 1)
 
                 X = np.linalg.solve(A, b)
@@ -87,7 +83,7 @@ def solve(mu_F, Sigma_F, mu_B, Sigma_B, C, sigma_C, alpha_init, maxIter, minLike
                 # calculate likelihood
                 L_C = - np.sum((C[:, np.newaxis]-alpha*F-(1-alpha)*B)**2) * invsgma2
                 L_F = - ((F-mu_Fi[:, np.newaxis]).T @ invSigma_Fi @ (F-mu_Fi[:, np.newaxis]))/2
-                L_B = - ((B-mubi[:, np.newaxis]).T @ invSigma_Bi @ (B-mubi[:, np.newaxis]))/2
+                L_B = - ((B-mu_Bj[:, np.newaxis]).T @ invSigma_Bj @ (B-mu_Bj[:, np.newaxis]))/2
                 like = (L_C + L_F + L_B)[0, 0]
 
                 if like > maxlike:
@@ -151,7 +147,7 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
             f_weights = (a**2 * gaussian_weights).ravel()
 
             f_pixels = np.reshape(f_pixels, (N*N, 3))
-            posInds = f_weights > 0
+            posInds = np.nan_to_num(f_weights) > 0
             f_pixels = f_pixels[posInds, :]
             f_weights = f_weights[posInds]
 
@@ -160,7 +156,7 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
             b_weights = ((1-a)**2 * gaussian_weights).ravel()
 
             b_pixels = np.reshape(b_pixels, (N*N, 3))
-            posInds = b_weights > 0
+            posInds = np.nan_to_num(b_weights) > 0
             b_pixels = b_pixels[posInds, :]
             b_weights = b_weights[posInds]
 
@@ -187,7 +183,7 @@ def main():
     img = scipy.misc.imread("gandalf.png")[:, :, :3]
     trimap = scipy.misc.imread("gandalfTrimap.png", flatten='True')
     alpha = bayesian_matte(img, trimap)
-    #scipy.misc.imsave('gandalfAlpha.png', alpha)
+    scipy.misc.imsave('gandalfAlpha.png', alpha)
     plt.title("Alpha matte")
     plt.imshow(alpha, cmap='gray')
     plt.show()
