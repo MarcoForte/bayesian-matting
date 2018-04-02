@@ -105,7 +105,7 @@ def solve(mu_F, Sigma_F, mu_B, Sigma_B, C, sigma_C, alpha_init, maxIter, minLike
 
                 lastLike = like
                 myiter += 1
-        return FMax, BMax, alphaMax
+    return FMax, BMax, alphaMax
 
 
 def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
