@@ -1,5 +1,7 @@
+import sys
+from pathlib import Path
 import numpy as np
-from scipy.ndimage.filters import gaussian_filter
+from scipy.ndimage import gaussian_filter
 import cv2
 from numba import jit 
 
@@ -141,8 +143,8 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
         Y, X = np.nonzero(unkpixels)
 
         for i in range(Y.shape[0]):
-            if n % 100 == 0:
-                print(n, nUnknown)
+            # if n % 100 == 0:
+                # print(n, nUnknown)
             y, x = Y[i], X[i]
             p = img[y, x]
             # Try cluster Fg, Bg in p's known neighborhood
@@ -187,19 +189,18 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
     return alpha
 
 
-def main():
-    img = scipy.misc.imread("gandalf.png")[:, :, :3]
-    trimap = scipy.misc.imread("gandalfTrimap.png", flatten='True')
+def main(img_path, trimap_path):
+    img = cv2.imread(Path(img_path))[:, :, :3]
+    trimap = cv2.imread(Path(trimap_path), cv2.IMREAD_GRAYSCALE)
     alpha = bayesian_matte(img, trimap)
     #scipy.misc.imsave('gandalfAlpha.png', alpha)
-    #plt.title("Alpha matte")
-    #plt.imshow(alpha, cmap='gray')
-    #plt.show()
+    plt.title("Alpha matte")
+    plt.imshow(alpha, cmap='gray')
+    plt.show()
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    import scipy.misc
-    main()
+    main(sys.argv[0], sys.argv[1])
 
 
 
