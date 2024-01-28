@@ -190,8 +190,9 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
 
 
 def main(img_path, trimap_path):
-    img = cv2.imread(Path(img_path))[:, :, :3]
-    trimap = cv2.imread(Path(trimap_path), cv2.IMREAD_GRAYSCALE)
+    print(img_path)
+    img = cv2.imread(str(Path(img_path)))[:, :, :3]
+    trimap = cv2.imread(str(Path(trimap_path)), cv2.IMREAD_GRAYSCALE)
     alpha = bayesian_matte(img, trimap)
     #scipy.misc.imsave('gandalfAlpha.png', alpha)
     plt.title("Alpha matte")
@@ -200,7 +201,7 @@ def main(img_path, trimap_path):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    main(sys.argv[0], sys.argv[1])
+    main(sys.argv[1], sys.argv[2])
 
 
 
