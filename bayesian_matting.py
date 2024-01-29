@@ -1,9 +1,9 @@
 import sys
 from pathlib import Path
 import numpy as np
-from scipy.ndimage import gaussian_filter
 import cv2
-from numba import jit 
+from numba import jit
+import warnings
 
 from orchard_bouman_clust import clustFunc
 
@@ -110,7 +110,7 @@ def solve(mu_F, Sigma_F, mu_B, Sigma_B, C, sigma_C, alpha_init, maxIter, minLike
     return FMax, BMax, alphaMax
 
 
-def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
+def bayesian_matte(img, trimap, sigma=8, N=25, minN=10, minN_reduction=0, failure_criteria=0.5):
     img = img/255
 
     h, w, c = img.shape
@@ -134,6 +134,10 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
     alpha[unknown_mask] = np.nan
     nUnknown = np.sum(unknown_mask)
     unkreg = unknown_mask
+
+    # set condition to terminate in event of infinite loop
+    failure = failure_criteria * nUnknown
+    iteration_failure = 0
 
     kernel = np.ones((3, 3))
     while n < nUnknown:
@@ -161,7 +165,7 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
             f_pixels = f_pixels[posInds, :]
             f_weights = f_weights[posInds]
 
-            # Take surrounding foreground pixels
+            # Take surrounding background pixels
             b_pixels = get_window(background, x, y, N)
             b_weights = ((1-a)**2 * gaussian_weights).ravel()
 
@@ -172,6 +176,18 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
 
             # if not enough data, return to it later...
             if len(f_weights) < minN or len(b_weights) < minN:
+                # could cause infinite loop. Add counter to track how often this condition continues
+                iteration_failure += 1
+                # if failure_criteria is met, adjust minN and retry. If that fails, terminate the program
+                if iteration_failure == failure:
+                    if minN >= (minN - minN_reduction):
+                        minN -= 1
+                        iteration_failure = 0
+                        warnings.warn(message="Infinte loop encountered. Reducing minN by 1 and retrying.",
+                                      category=RuntimeWarning)
+                    else:
+                        raise RuntimeError("Terminating infinite loop based on failure_criteria, adjust input "
+                                           "parameters and retry.")
                 continue
             # Partition foreground and background pixels to clusters (in a weighted manner)
             mu_f, sigma_f = clustFunc(f_pixels, f_weights)
@@ -185,6 +201,7 @@ def bayesian_matte(img, trimap, sigma=8, N=25, minN=10):
             alpha[y, x] = alphaT
             unknown_mask[y, x] = 0
             n += 1
+            iteration_failure = 0
 
     return alpha
 
