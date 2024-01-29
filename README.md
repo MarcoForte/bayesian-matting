@@ -9,12 +9,16 @@ Python implementation of Yung-Yu Chuang, Brian Curless, David H. Salesin, and Ri
 - numba > 0.30.1 (Not neccesary, but does give a 5x speedup)
 - matplotlib
 - opencv
+- sys
+- pathlib
 
 ### Running the demo
-- 'python bayesian_matting.py'
--  sigma (σ) fall off of gaussian weighting to local window
--  N size of window to construct local fg/bg clusters from
--  minN minimum number of known pixels in local window to proceed
+- 'python bayesian_matting.py gandalf.png gandalfTrimap.png'
+- sigma (σ) fall off of gaussian weighting to local window
+- N size of window to construct local fg/bg clusters from
+- minN minimum number of known pixels in local window to proceed
+- minN_reduction to reduce N by in event of infinite loop. May reduce accuracy
+- failure criteria percentage to know when to exit infinite loop
 
 
 ### Results
