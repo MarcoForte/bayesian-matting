@@ -11,6 +11,7 @@ Python implementation of Yung-Yu Chuang, Brian Curless, David H. Salesin, and Ri
 - opencv
 - sys
 - pathlib
+- argparse
 
 ### Running the demo
 - 'python bayesian_matting.py gandalf.png gandalfTrimap.png'
@@ -18,7 +19,6 @@ Python implementation of Yung-Yu Chuang, Brian Curless, David H. Salesin, and Ri
 - N size of window to construct local fg/bg clusters from
 - minN minimum number of known pixels in local window to proceed
 - minN_reduction to reduce N by in event of infinite loop. May reduce accuracy
-- failure criteria percentage to know when to exit infinite loop
 
 
 ### Results
